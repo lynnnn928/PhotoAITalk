@@ -1,0 +1,8 @@
+{
+  "name": "PicPic",
+  "description": "A visual AI-based immersive language learning app that turns your world into a language lesson.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
