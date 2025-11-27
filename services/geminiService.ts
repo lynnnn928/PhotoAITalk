@@ -33,13 +33,25 @@ async function decodeAudioData(
 }
 
 // Helper to initialize AI client dynamically
-const getAIClient = (customKey?: string) => {
+const getAIClient = (customKey?: string, customBaseUrl?: string) => {
   // Priority: Function Arg -> LocalStorage (handled in app state) -> Env Var
   const key = customKey || process.env.API_KEY;
   if (!key) {
     console.warn("No API Key available");
   }
-  return new GoogleGenAI({ apiKey: key || '' });
+  
+  // Clean up Base URL if provided
+  let baseUrl = customBaseUrl?.trim();
+  if (baseUrl && baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+
+  // Pass configuration to GoogleGenAI
+  // Note: The SDK supports baseUrl in ClientOptions
+  return new GoogleGenAI({ 
+    apiKey: key || '', 
+    baseUrl: baseUrl 
+  });
 };
 
 export const analyzeImage = async (
@@ -47,10 +59,11 @@ export const analyzeImage = async (
   mimeType: string,
   nativeLang: string,
   targetLang: string,
-  apiKey?: string
+  apiKey?: string,
+  apiBaseUrl?: string
 ): Promise<{ objects: InteractiveObject[]; comments: AIComment[] }> => {
   
-  const ai = getAIClient(apiKey);
+  const ai = getAIClient(apiKey, apiBaseUrl);
 
   const prompt = `
     Analyze this image for a language learner. 
@@ -140,9 +153,9 @@ interface TTSCallbacks {
   onEnded?: () => void;
 }
 
-export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, apiKey?: string) => {
+export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, apiKey?: string, apiBaseUrl?: string) => {
   try {
-    const ai = getAIClient(apiKey);
+    const ai = getAIClient(apiKey, apiBaseUrl);
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: text }] }],

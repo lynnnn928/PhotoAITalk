@@ -5,6 +5,7 @@ export interface UserSettings {
   dailyGoal: number;
   onboarded: boolean;
   apiKey?: string; // Optional custom API key
+  apiBaseUrl?: string; // Optional custom API Base URL
 }
 
 export interface InteractiveObject {

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Camera, Home, User, Settings, Loader2, RefreshCw, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Share2, Volume2, Download, ArrowRight, Check, Zap, Globe, LogOut, Shuffle, LayoutGrid, Key, ArrowDown, Bookmark, Flower, BookOpen, Star, Sprout, Leaf, AlignVerticalJustifyCenter, Square, Layers, AlertCircle } from 'lucide-react';
+import { Camera, Home, User, Settings, Loader2, RefreshCw, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Share2, Volume2, Download, ArrowRight, Check, Zap, Globe, LogOut, Shuffle, LayoutGrid, Key, ArrowDown, Bookmark, Flower, BookOpen, Star, Sprout, Leaf, AlignVerticalJustifyCenter, Square, Layers, AlertCircle, Link } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 
 import { UserSettings, LearningNote, Stats, InteractiveObject, AIComment } from './types';
@@ -62,6 +62,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Overlay",
     layoutBelow: "Below",
     noMorePhotos: "No more photos, upload more!",
+    apiBaseUrl: "API Base URL (Optional)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Chinese: {
     nativeTitle: "您的母语是？",
@@ -100,6 +102,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "覆盖",
     layoutBelow: "下方",
     noMorePhotos: "没有图片了，上传更多图片吧",
+    apiBaseUrl: "API 基础地址 (可选)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Spanish: {
     nativeTitle: "¿Cuál es tu lengua materna?",
@@ -138,6 +142,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Cubrir",
     layoutBelow: "Debajo",
     noMorePhotos: "No más fotos. ¡Sube más!",
+    apiBaseUrl: "URL Base de la API (Opcional)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   French: {
     nativeTitle: "Quelle est votre langue maternelle ?",
@@ -176,6 +182,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Superposer",
     layoutBelow: "Dessous",
     noMorePhotos: "Plus de photos. Téléchargez-en plus !",
+    apiBaseUrl: "URL de base de l'API (Facultatif)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
    Japanese: {
     nativeTitle: "母国語は何ですか？",
@@ -214,6 +222,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "重ねる",
     layoutBelow: "下配置",
     noMorePhotos: "写真はもうありません。もっとアップロードしましょう！",
+    apiBaseUrl: "APIベースURL（任意）",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Korean: {
     nativeTitle: "모국어가 무엇인가요?",
@@ -252,6 +262,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "덮어쓰기",
     layoutBelow: "아래 배치",
     noMorePhotos: "더 이상 사진이 없습니다. 더 업로드하세요!",
+    apiBaseUrl: "API 기본 URL (선택 사항)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   German: {
     nativeTitle: "Was ist deine Muttersprache?",
@@ -290,6 +302,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Überlagern",
     layoutBelow: "Unterhalb",
     noMorePhotos: "Keine Fotos mehr. Laden Sie mehr hoch!",
+    apiBaseUrl: "API-Basis-URL (Optional)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Italian: {
     nativeTitle: "Qual è la tua lingua madre?",
@@ -328,6 +342,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Sovrapponi",
     layoutBelow: "Sotto",
     noMorePhotos: "Niente più foto. Caricane altre!",
+    apiBaseUrl: "URL Base API (Opzionale)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Russian: {
     nativeTitle: "Какой ваш родной язык?",
@@ -366,6 +382,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Наложение",
     layoutBelow: "Снизу",
     noMorePhotos: "Больше нет фото. Загрузите еще!",
+    apiBaseUrl: "Базовый URL API (необязательно)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   },
   Portuguese: {
     nativeTitle: "Qual é a sua língua nativa?",
@@ -404,6 +422,8 @@ const TRANSLATIONS: Record<string, any> = {
     layoutOverlay: "Sobrepor",
     layoutBelow: "Abaixo",
     noMorePhotos: "Não há mais fotos. Envie mais!",
+    apiBaseUrl: "URL Base da API (Opcional)",
+    apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
   }
 };
 
@@ -432,14 +452,19 @@ export const useApp = () => {
 const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { settings, updateSettings, t } = useApp();
   const [tempKey, setTempKey] = useState(settings.apiKey || '');
+  const [tempBaseUrl, setTempBaseUrl] = useState(settings.apiBaseUrl || '');
 
   // Sync temp key with settings when opened
   useEffect(() => {
     setTempKey(settings.apiKey || '');
-  }, [isOpen, settings.apiKey]);
+    setTempBaseUrl(settings.apiBaseUrl || '');
+  }, [isOpen, settings.apiKey, settings.apiBaseUrl]);
 
-  const handleKeySave = () => {
-    updateSettings({ apiKey: tempKey });
+  const handleSave = () => {
+    updateSettings({ 
+      apiKey: tempKey, 
+      apiBaseUrl: tempBaseUrl 
+    });
   };
 
   if (!isOpen) return null;
@@ -520,23 +545,44 @@ const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
             </div>
           </div>
 
-          {/* API Key */}
+          {/* API Config (Key & Base URL) */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-white">
              <div className="flex items-center gap-3 mb-4 text-slate-800 font-bold">
                <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><Key size={20} /></div>
                {t.apiKey}
              </div>
-             <div className="space-y-2">
-                <p className="text-xs text-gray-500">{t.apiKeyDesc}</p>
+             
+             {/* API Key Input */}
+             <div className="space-y-2 mb-4">
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider ml-1">API Key</p>
                 <input 
                   type="password"
                   value={tempKey}
                   onChange={(e) => setTempKey(e.target.value)}
-                  onBlur={handleKeySave}
+                  onBlur={handleSave}
                   placeholder={t.apiKeyPlaceholder}
                   className="w-full bg-gray-50 text-slate-900 rounded-xl px-4 py-3 border border-gray-100 focus:ring-2 focus:ring-purple-500 outline-none font-mono text-sm"
                 />
              </div>
+
+             {/* Base URL Input */}
+             <div className="space-y-2">
+                 <div className="flex items-center gap-2">
+                   <p className="text-xs text-gray-500 font-bold uppercase tracking-wider ml-1">{t.apiBaseUrl}</p>
+                   <Link size={12} className="text-gray-400" />
+                 </div>
+                <input 
+                  type="text"
+                  value={tempBaseUrl}
+                  onChange={(e) => setTempBaseUrl(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder={t.apiBaseUrlPlaceholder}
+                  className="w-full bg-gray-50 text-slate-900 rounded-xl px-4 py-3 border border-gray-100 focus:ring-2 focus:ring-purple-500 outline-none font-mono text-sm"
+                />
+             </div>
+             <p className="text-[10px] text-gray-400 mt-3 px-1">
+               {t.apiKeyDesc}
+             </p>
           </div>
 
         </div>
@@ -1021,7 +1067,8 @@ const DetailView = () => {
               mimeType, 
               settings.nativeLanguage, 
               settings.targetLanguage,
-              settings.apiKey
+              settings.apiKey,
+              settings.apiBaseUrl // Pass custom base URL
             );
 
             const newNote: LearningNote = {
@@ -1168,7 +1215,7 @@ const DetailView = () => {
         // For simplicity, we keep it as "active"
       },
       onEnded: () => setAudioLoadingId(null)
-    }, settings.apiKey);
+    }, settings.apiKey, settings.apiBaseUrl); // Pass custom base URL
   };
 
   const openPoster = () => {
