@@ -47,7 +47,7 @@ export const analyzeImage = async (
 
     1. Identify 3-5 distinct, key objects in the scene. Provide their name in the target language and native language. Estimate their center position (x, y) as a percentage (0-100) from the top-left.
     2. Generate 3 comments from specific personas:
-       - 'Beginner': A simple noun phrase or very basic sentence describing the main subject.
+       - 'Beginner': A simple sentence that MUST explicitly include ALL of the identified object labels to describe what is in the scene.
        - 'Grammar Geek': A grammatically complete, complex sentence describing an action or relationship in the image.
        - 'Poetic Master': A short, metaphorical or poetic expression inspired by the mood of the image.
        Provide translations for all comments.
