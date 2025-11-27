@@ -1,5 +1,5 @@
 {
-  "name": "PicPic",
+  "name": "PhotoAITalk",
   "description": "A visual AI-based immersive language learning app that turns your world into a language lesson.",
   "requestFramePermissions": [
     "camera",

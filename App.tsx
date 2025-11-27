@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Camera, Home, User, Settings, Loader2, RefreshCw, Search, ChevronDown, ChevronUp, ChevronLeft, X, Share2, Volume2, Download, ArrowRight, Check, Zap, Globe, LogOut, Shuffle, LayoutGrid, Key, ArrowDown, Bookmark, Flower, BookOpen, Star, Sprout, Leaf, AlignVerticalJustifyCenter, Square, Layers } from 'lucide-react';
+import { Camera, Home, User, Settings, Loader2, RefreshCw, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Share2, Volume2, Download, ArrowRight, Check, Zap, Globe, LogOut, Shuffle, LayoutGrid, Key, ArrowDown, Bookmark, Flower, BookOpen, Star, Sprout, Leaf, AlignVerticalJustifyCenter, Square, Layers, AlertCircle } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 
 import { UserSettings, LearningNote, Stats, InteractiveObject, AIComment } from './types';
@@ -61,6 +61,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Capture your first photo to start planting memories.",
     layoutOverlay: "Overlay",
     layoutBelow: "Below",
+    noMorePhotos: "No more photos, upload more!",
   },
   Chinese: {
     nativeTitle: "您的母语是？",
@@ -98,6 +99,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "拍摄第一张照片，开始种植记忆。",
     layoutOverlay: "覆盖",
     layoutBelow: "下方",
+    noMorePhotos: "没有图片了，上传更多图片吧",
   },
   Spanish: {
     nativeTitle: "¿Cuál es tu lengua materna?",
@@ -135,6 +137,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Captura tu primera foto para empezar a plantar recuerdos.",
     layoutOverlay: "Cubrir",
     layoutBelow: "Debajo",
+    noMorePhotos: "No más fotos. ¡Sube más!",
   },
   French: {
     nativeTitle: "Quelle est votre langue maternelle ?",
@@ -172,6 +175,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Prenez votre première photo pour commencer.",
     layoutOverlay: "Superposer",
     layoutBelow: "Dessous",
+    noMorePhotos: "Plus de photos. Téléchargez-en plus !",
   },
    Japanese: {
     nativeTitle: "母国語は何ですか？",
@@ -209,6 +213,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "最初の写真を撮って記憶を植え始めましょう。",
     layoutOverlay: "重ねる",
     layoutBelow: "下配置",
+    noMorePhotos: "写真はもうありません。もっとアップロードしましょう！",
   },
   Korean: {
     nativeTitle: "모국어가 무엇인가요?",
@@ -246,6 +251,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "첫 번째 사진을 찍어 기억을 심으세요.",
     layoutOverlay: "덮어쓰기",
     layoutBelow: "아래 배치",
+    noMorePhotos: "더 이상 사진이 없습니다. 더 업로드하세요!",
   },
   German: {
     nativeTitle: "Was ist deine Muttersprache?",
@@ -283,6 +289,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Mache dein erstes Foto, um Erinnerungen zu pflanzen.",
     layoutOverlay: "Überlagern",
     layoutBelow: "Unterhalb",
+    noMorePhotos: "Keine Fotos mehr. Laden Sie mehr hoch!",
   },
   Italian: {
     nativeTitle: "Qual è la tua lingua madre?",
@@ -320,6 +327,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Scatta la tua prima foto per iniziare a piantare ricordi.",
     layoutOverlay: "Sovrapponi",
     layoutBelow: "Sotto",
+    noMorePhotos: "Niente più foto. Caricane altre!",
   },
   Russian: {
     nativeTitle: "Какой ваш родной язык?",
@@ -357,6 +365,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Сделайте первое фото, чтобы посадить воспоминания.",
     layoutOverlay: "Наложение",
     layoutBelow: "Снизу",
+    noMorePhotos: "Больше нет фото. Загрузите еще!",
   },
   Portuguese: {
     nativeTitle: "Qual é a sua língua nativa?",
@@ -394,6 +403,7 @@ const TRANSLATIONS: Record<string, any> = {
     emptyStateDesc: "Capture sua primeira foto para começar a plantar memórias.",
     layoutOverlay: "Sobrepor",
     layoutBelow: "Abaixo",
+    noMorePhotos: "Não há mais fotos. Envie mais!",
   }
 };
 
@@ -580,9 +590,9 @@ const Onboarding = () => {
   const currentSelection = step === 0 ? native : target;
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] flex flex-col relative overflow-hidden">
+    <div className="h-full bg-[#F2F2F7] flex flex-col relative overflow-hidden">
       {/* Navigation */}
-      <div className="pt-safe px-6 pb-2 flex justify-between items-center h-16">
+      <div className="pt-safe px-6 pb-2 flex justify-between items-center h-16 shrink-0">
         {step === 1 ? (
           <button 
             onClick={handleBack} 
@@ -595,7 +605,7 @@ const Onboarding = () => {
       </div>
 
       {/* Header - iOS Large Title Style */}
-      <div className="px-6 mb-6 animate-in slide-in-from-left-4 fade-in duration-500">
+      <div className="px-6 mb-6 animate-in slide-in-from-left-4 fade-in duration-500 shrink-0">
         <h1 className="text-[32px] leading-tight font-black text-slate-900 mb-2 tracking-tight">
           {step === 0 ? currentT.nativeTitle : currentT.targetTitle}
         </h1>
@@ -644,6 +654,41 @@ const Onboarding = () => {
   );
 };
 
+// Image Resizer Utility to prevent LocalStorage overflow
+const resizeImage = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1024; // Limit max dimension to 1024px
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Compress to JPEG 0.7 to significantly reduce size
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 // 2. Navigation Component
 const BottomNav = () => {
   const navigate = useNavigate();
@@ -673,14 +718,16 @@ const BottomNav = () => {
             type="file" 
             accept="image/*" 
             className="hidden" 
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
-                 const reader = new FileReader();
-                 reader.onloadend = () => {
-                   navigate('/detail/new', { state: { imageSrc: reader.result as string } });
-                 };
-                 reader.readAsDataURL(file);
+                 try {
+                   // Resize image before navigating to prevent LocalStorage quota exceeded errors
+                   const resized = await resizeImage(file);
+                   navigate('/detail/new', { state: { imageSrc: resized } });
+                 } catch (err) {
+                   console.error("Error processing image", err);
+                 }
               }
             }}
           />
@@ -746,177 +793,183 @@ const HomePage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pb-24 relative flex flex-col">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-20 bg-[#F2F2F7]/95 backdrop-blur-xl pt-safe px-6 pb-2 transition-all">
-        <div className="flex items-end justify-between mb-4 mt-2">
-           <div className="flex items-baseline gap-5">
-             <button 
-               onClick={() => setActiveTab('garden')}
-               className={`text-3xl font-black transition-colors tracking-tight flex items-center gap-2 ${activeTab === 'garden' ? 'text-black' : 'text-gray-300'}`}
-             >
-               <span className={activeTab === 'garden' ? 'text-[#34C759]' : 'text-gray-300'}><Flower size={28} /></span>
-               {t.garden}
-             </button>
-             <button 
-               onClick={() => setActiveTab('collection')}
-               className={`text-xl font-bold transition-colors ${activeTab === 'collection' ? 'text-black text-2xl' : 'text-gray-300'}`}
-             >
-               {t.collection}
-             </button>
-           </div>
-           
-           {activeTab === 'garden' && (
-             <button 
-               onClick={handleShuffle} 
-               className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-500 hover:text-[#34C759] hover:scale-105 transition-all"
-             >
-               <RefreshCw size={20} />
-             </button>
-           )}
+    <div className="h-full bg-[#F2F2F7] relative flex flex-col overflow-hidden">
+      
+      {/* Scrollable Container */}
+      <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-20 bg-[#F2F2F7]/95 backdrop-blur-xl pt-safe px-6 pb-2 transition-all">
+          <div className="flex items-end justify-between mb-4 mt-2">
+             <div className="flex items-baseline gap-5">
+               <button 
+                 onClick={() => setActiveTab('garden')}
+                 className={`text-3xl font-black transition-colors tracking-tight flex items-center gap-2 ${activeTab === 'garden' ? 'text-black' : 'text-gray-300'}`}
+               >
+                 <span className={activeTab === 'garden' ? 'text-[#34C759]' : 'text-gray-300'}><Flower size={28} /></span>
+                 {t.garden}
+               </button>
+               <button 
+                 onClick={() => setActiveTab('collection')}
+                 className={`text-xl font-bold transition-colors ${activeTab === 'collection' ? 'text-black text-2xl' : 'text-gray-300'}`}
+               >
+                 {t.collection}
+               </button>
+             </div>
+             
+             {activeTab === 'garden' && (
+               <button 
+                 onClick={handleShuffle} 
+                 className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-500 hover:text-[#34C759] hover:scale-105 transition-all"
+               >
+                 <RefreshCw size={20} />
+               </button>
+             )}
+          </div>
+          
+          {/* Search Bar - Only in Garden */}
+          {activeTab === 'garden' && (
+            <div className="relative group mb-2 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400 group-focus-within:text-black transition-colors" />
+              </div>
+              <input 
+                type="text" 
+                placeholder={t.searchPlaceholder}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white text-gray-900 rounded-2xl pl-10 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#34C759]/20 shadow-sm border-none text-base font-medium placeholder:text-gray-400 transition-all"
+              />
+            </div>
+          )}
+
+          {/* Collection Tabs */}
+          {activeTab === 'collection' && (
+            <div className="flex bg-gray-200/50 p-1 rounded-xl mb-2 animate-in fade-in slide-in-from-top-2">
+              <button 
+                onClick={() => setCollectionTab('words')}
+                className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${collectionTab === 'words' ? 'bg-white shadow-sm text-[#34C759]' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {t.savedWords} ({savedWords.length})
+              </button>
+              <button 
+                onClick={() => setCollectionTab('sentences')}
+                className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${collectionTab === 'sentences' ? 'bg-white shadow-sm text-[#34C759]' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {t.savedSentences} ({savedSentences.length})
+              </button>
+            </div>
+          )}
         </div>
-        
-        {/* Search Bar - Only in Garden */}
-        {activeTab === 'garden' && (
-          <div className="relative group mb-2 animate-in fade-in slide-in-from-top-2">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400 group-focus-within:text-black transition-colors" />
-            </div>
-            <input 
-              type="text" 
-              placeholder={t.searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white text-gray-900 rounded-2xl pl-10 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#34C759]/20 shadow-sm border-none text-base font-medium placeholder:text-gray-400 transition-all"
-            />
-          </div>
-        )}
 
-        {/* Collection Tabs */}
-        {activeTab === 'collection' && (
-          <div className="flex bg-gray-200/50 p-1 rounded-xl mb-2 animate-in fade-in slide-in-from-top-2">
-            <button 
-              onClick={() => setCollectionTab('words')}
-              className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${collectionTab === 'words' ? 'bg-white shadow-sm text-[#34C759]' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              {t.savedWords} ({savedWords.length})
-            </button>
-            <button 
-              onClick={() => setCollectionTab('sentences')}
-              className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${collectionTab === 'sentences' ? 'bg-white shadow-sm text-[#34C759]' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              {t.savedSentences} ({savedSentences.length})
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Content Area */}
-      <div className="px-4 pt-2 flex-1 relative z-10">
-        
-        {/* GARDEN VIEW */}
-        {activeTab === 'garden' && (
-           filteredNotes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center pt-20 text-center animate-in fade-in zoom-in duration-500 opacity-60">
-               <div className="w-24 h-24 bg-white/50 border-4 border-white shadow-sm rounded-full flex items-center justify-center text-[#34C759] mb-6 transform -rotate-3">
-                 <Sprout size={48} fill="currentColor" className="text-[#34C759]" />
-               </div>
-               <h3 className="text-xl font-black text-slate-800 mb-2">{t.emptyStateTitle}</h3>
-               <p className="text-gray-400 font-medium max-w-xs mx-auto mb-8">
-                  {t.emptyStateDesc}
-               </p>
-               <div className="animate-bounce mt-4 opacity-30">
-                 <ArrowDown size={32} className="text-[#34C759]" />
-               </div>
-            </div>
-          ) : (
-            <div className="masonry-grid">
-              {filteredNotes.map(note => (
-                <div 
-                  key={note.id} 
-                  onClick={() => navigate(`/detail/${note.id}`)}
-                  className="break-inside-avoid mb-4 bg-white rounded-3xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all cursor-pointer relative group transform hover:-translate-y-1"
-                >
-                  <div className="relative">
-                     <img src={note.imageUrl} alt="Note" className="w-full object-cover" />
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
-                     <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg">
-                       <p className="text-[10px] font-bold text-white/90">
-                         {new Date(note.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                       </p>
-                     </div>
-                  </div>
-                  
-                  <div className="p-4">
-                    <p className="font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-3">
-                      "{note.comments.find(c => c.persona === 'Beginner')?.content}"
-                    </p>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {note.objects.slice(0, 3).map(obj => (
-                        <span key={obj.id} className="text-[11px] font-semibold bg-gray-50 text-gray-500 px-2.5 py-1 rounded-full border border-gray-100">
-                          {obj.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {/* COLLECTION VIEW */}
-        {activeTab === 'collection' && (
-          (collectionTab === 'words' && savedWords.length === 0) || (collectionTab === 'sentences' && savedSentences.length === 0) ? (
-            <div className="flex flex-col items-center justify-center pt-20 opacity-50">
-               <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-3xl mb-4 text-gray-400">
-                 {collectionTab === 'words' ? '🔤' : '💬'}
-               </div>
-               <p className="text-gray-500 font-medium">{t.noSavedItems}</p>
-            </div>
-          ) : (
-            <div className="animate-in fade-in slide-in-from-bottom-2">
-              {collectionTab === 'words' && (
-                <div className="grid grid-cols-2 gap-3">
-                  {savedWords.map((word, idx) => (
-                    <div 
-                      key={`${word.id}-${idx}`}
-                      onClick={() => navigate(`/detail/${word.noteId}`)}
-                      className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:scale-105 transition-transform"
-                    >
-                       <div className="text-2xl font-black text-[#34C759] mb-1">{word.label}</div>
-                       <div className="text-gray-400 text-sm font-medium">{word.nativeLabel}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {collectionTab === 'sentences' && (
-                 <div className="space-y-3">
-                   {savedSentences.map((sentence, idx) => (
-                     <div 
-                       key={`${sentence.id}-${idx}`}
-                       onClick={() => navigate(`/detail/${sentence.noteId}`)}
-                       className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
-                     >
-                       <div className="flex items-start gap-3">
-                          <div className="mt-1 min-w-[24px]">
-                            {sentence.persona === 'Beginner' && '🐣'}
-                            {sentence.persona === 'Grammar Geek' && '🤓'}
-                            {sentence.persona === 'Poetic Master' && '🎭'}
-                          </div>
-                          <div>
-                            <p className="text-slate-900 font-medium leading-relaxed mb-1">{sentence.content}</p>
-                            <p className="text-gray-500 text-sm">{sentence.translation}</p>
-                          </div>
-                       </div>
-                     </div>
-                   ))}
+        {/* Content Area */}
+        <div className="px-4 pt-2 pb-24 relative z-10 mx-auto max-w-[1600px]">
+          
+          {/* GARDEN VIEW */}
+          {activeTab === 'garden' && (
+             filteredNotes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center pt-20 text-center animate-in fade-in zoom-in duration-500 opacity-60">
+                 <div className="w-24 h-24 bg-white/50 border-4 border-white shadow-sm rounded-full flex items-center justify-center text-[#34C759] mb-6 transform -rotate-3">
+                   <Sprout size={48} fill="currentColor" className="text-[#34C759]" />
                  </div>
-              )}
-            </div>
-          )
-        )}
+                 <h3 className="text-xl font-black text-slate-800 mb-2">{t.emptyStateTitle}</h3>
+                 <p className="text-gray-400 font-medium max-w-xs mx-auto mb-8">
+                    {t.emptyStateDesc}
+                 </p>
+                 <div className="animate-bounce mt-4 opacity-30">
+                   <ArrowDown size={32} className="text-[#34C759]" />
+                 </div>
+              </div>
+            ) : (
+              // Responsive Masonry Grid using Tailwind Columns
+              <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+                {filteredNotes.map(note => (
+                  <div 
+                    key={note.id} 
+                    onClick={() => navigate(`/detail/${note.id}`)}
+                    className="break-inside-avoid mb-4 bg-white rounded-3xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all cursor-pointer relative group transform hover:-translate-y-1 hover:scale-[1.01]"
+                  >
+                    <div className="relative">
+                       <img src={note.imageUrl} alt="Note" className="w-full object-cover" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                       <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-md px-2 py-1 rounded-lg">
+                         <p className="text-[10px] font-bold text-white/90">
+                           {new Date(note.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                         </p>
+                       </div>
+                    </div>
+                    
+                    <div className="p-4">
+                      <p className="font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-3">
+                        "{note.comments.find(c => c.persona === 'Beginner')?.content}"
+                      </p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {note.objects.slice(0, 3).map(obj => (
+                          <span key={obj.id} className="text-[11px] font-semibold bg-gray-50 text-gray-500 px-2.5 py-1 rounded-full border border-gray-100">
+                            {obj.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* COLLECTION VIEW */}
+          {activeTab === 'collection' && (
+            (collectionTab === 'words' && savedWords.length === 0) || (collectionTab === 'sentences' && savedSentences.length === 0) ? (
+              <div className="flex flex-col items-center justify-center pt-20 opacity-50">
+                 <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-3xl mb-4 text-gray-400">
+                   {collectionTab === 'words' ? '🔤' : '💬'}
+                 </div>
+                 <p className="text-gray-500 font-medium">{t.noSavedItems}</p>
+              </div>
+            ) : (
+              <div className="animate-in fade-in slide-in-from-bottom-2">
+                {collectionTab === 'words' && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {savedWords.map((word, idx) => (
+                      <div 
+                        key={`${word.id}-${idx}`}
+                        onClick={() => navigate(`/detail/${word.noteId}`)}
+                        className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:scale-105 transition-transform"
+                      >
+                         <div className="text-2xl font-black text-[#34C759] mb-1">{word.label}</div>
+                         <div className="text-gray-400 text-sm font-medium">{word.nativeLabel}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {collectionTab === 'sentences' && (
+                   <div className="space-y-3 max-w-2xl mx-auto">
+                     {savedSentences.map((sentence, idx) => (
+                       <div 
+                         key={`${sentence.id}-${idx}`}
+                         onClick={() => navigate(`/detail/${sentence.noteId}`)}
+                         className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                       >
+                         <div className="flex items-start gap-3">
+                            <div className="mt-1 min-w-[24px]">
+                              {sentence.persona === 'Beginner' && '🐣'}
+                              {sentence.persona === 'Grammar Geek' && '🤓'}
+                              {sentence.persona === 'Poetic Master' && '🎭'}
+                            </div>
+                            <div>
+                              <p className="text-slate-900 font-medium leading-relaxed mb-1">{sentence.content}</p>
+                              <p className="text-gray-500 text-sm">{sentence.translation}</p>
+                            </div>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                )}
+              </div>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
@@ -943,7 +996,9 @@ const DetailView = () => {
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null); // For poster selection
   const [isPosterOverlay, setIsPosterOverlay] = useState(true); // Poster layout mode
   const [commentsCollapsed, setCommentsCollapsed] = useState(false);
-  const [showEndDialog, setShowEndDialog] = useState(false);
+  
+  // Toasts
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Swipe States
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -998,6 +1053,32 @@ const DetailView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId, state]);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const currentIndex = notes.findIndex(n => n.id === noteId);
+  const isGalleryMode = currentIndex !== -1 && noteId !== 'new';
+
+  const navigateImage = (direction: 'next' | 'prev') => {
+    if (!isGalleryMode) return;
+    
+    if (direction === 'next') {
+      if (currentIndex < notes.length - 1) {
+        navigate(`/detail/${notes[currentIndex + 1].id}`);
+      } else {
+        showToast(t.noMorePhotos);
+      }
+    } else {
+      if (currentIndex > 0) {
+        navigate(`/detail/${notes[currentIndex - 1].id}`);
+      } else {
+         showToast(t.noMorePhotos);
+      }
+    }
+  };
+
   // Handle Swipe Navigation
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -1017,44 +1098,26 @@ const DetailView = () => {
     
     // Only swipe if not interacting with object popover
     if (activeObject) return;
-    if (noteId === 'new') return; // Don't swipe on new note preview
-
-    // Find current index
-    const currentIndex = notes.findIndex(n => n.id === noteId);
-    if (currentIndex === -1) return;
+    if (!isGalleryMode) return; 
 
     if (isLeftSwipe) { // Next
-      if (currentIndex < notes.length - 1) {
-        // Go to next
-        const nextId = notes[currentIndex + 1].id;
-        navigate(`/detail/${nextId}`);
-      } else {
-        // End of list
-        setShowEndDialog(true);
-      }
+      navigateImage('next');
     }
 
     if (isRightSwipe) { // Previous
-      if (currentIndex > 0) {
-        // Go to previous
-        const prevId = notes[currentIndex - 1].id;
-        navigate(`/detail/${prevId}`);
-      }
+      navigateImage('prev');
     }
   };
 
-  const handleShuffleReview = () => {
-    if (notes.length === 0) return;
-    const randomIdx = Math.floor(Math.random() * notes.length);
-    navigate(`/detail/${notes[randomIdx].id}`);
-    setShowEndDialog(false);
-  };
-
   const handleSave = () => {
-    if (!currentNote) return;
+    if (!currentNote) {
+       navigate('/');
+       return;
+    }
     const exists = notes.find(n => n.id === currentNote.id);
     if (!exists) addNote(currentNote);
     else updateNote(currentNote.id, currentNote);
+    navigate('/');
   };
 
   const toggleHeart = () => {
@@ -1120,7 +1183,7 @@ const DetailView = () => {
       try {
         const dataUrl = await htmlToImage.toPng(posterRef.current);
         const link = document.createElement('a');
-        link.download = `picpic-poster-${Date.now()}.png`;
+        link.download = `photoaitalk-poster-${Date.now()}.png`;
         link.href = dataUrl;
         link.click();
       } catch (error) {
@@ -1155,14 +1218,42 @@ const DetailView = () => {
 
       {/* Header Actions */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-start pt-safe">
-        <button onClick={() => { handleSave(); navigate('/'); }} className="text-white drop-shadow-md p-2 rounded-full hover:bg-white/10 transition">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <button onClick={handleSave} className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-md hover:bg-white/30 transition active:scale-95">
+          <ChevronLeft size={24} />
         </button>
         <button onClick={openPoster} className="flex items-center gap-1 text-white drop-shadow-md bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold border border-white/30 hover:bg-white/30 transition">
           <Share2 size={14} />
           {t.share}
         </button>
       </div>
+
+      {/* Navigation Arrows (Only in Gallery Mode) */}
+      {isGalleryMode && (
+        <>
+          <button 
+             onClick={(e) => { e.stopPropagation(); navigateImage('prev'); }}
+             className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-black/40 transition active:scale-95"
+          >
+            <ChevronLeft size={28} />
+          </button>
+          <button 
+             onClick={(e) => { e.stopPropagation(); navigateImage('next'); }}
+             className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-black/40 transition active:scale-95"
+          >
+            <ChevronRight size={28} />
+          </button>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in fade-in zoom-in duration-200">
+          <div className="bg-black/80 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
+            <AlertCircle size={24} className="text-[#34C759]" />
+            <span className="font-bold text-lg">{toastMessage}</span>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Bubbles Layer */}
       <div className="absolute inset-0 z-10">
@@ -1246,36 +1337,6 @@ const DetailView = () => {
              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Tap to Listen</p>
           </div>
         </>
-      )}
-
-      {/* End of List Dialog */}
-      {showEndDialog && (
-        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
-           <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl">
-              <div className="w-16 h-16 bg-green-100 text-[#34C759] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                🎉
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{t.reviewComplete}</h2>
-              <p className="text-gray-500 mb-6">{t.reviewDesc}</p>
-              
-              <div className="space-y-3">
-                 <button 
-                   onClick={handleShuffleReview}
-                   className="w-full bg-[#34C759] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-[#2da84a] transition active:scale-95"
-                 >
-                   <Shuffle size={18} />
-                   {t.shuffleReview}
-                 </button>
-                 <button 
-                   onClick={() => navigate('/')}
-                   className="w-full bg-gray-100 text-gray-700 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-95"
-                 >
-                   <LayoutGrid size={18} />
-                   {t.returnGarden}
-                 </button>
-              </div>
-           </div>
-        </div>
       )}
 
       {/* Comments Area (Collapsible) */}
@@ -1384,7 +1445,7 @@ const DetailView = () => {
                <div className="flex justify-between items-center px-1 mt-1 border-t border-gray-100 pt-3">
                   <div className="flex items-center gap-1.5">
                      <div className="w-2.5 h-2.5 rounded-full bg-[#34C759]"></div>
-                     <span className="text-gray-400 text-[10px] font-bold tracking-widest uppercase">PicPic Garden</span>
+                     <span className="text-gray-400 text-[10px] font-bold tracking-widest uppercase">PhotoAITalk Garden</span>
                   </div>
                    <span className="text-gray-300 text-[10px] font-bold">{new Date().toLocaleDateString()}</span>
                </div>
@@ -1475,101 +1536,104 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pb-32">
+    <div className="h-full bg-[#F2F2F7] flex flex-col overflow-hidden">
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
-      {/* Header Card */}
-      <div className="bg-white pt-safe pb-8 px-6 rounded-b-[2.5rem] shadow-sm mb-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-6 opacity-5">
-           <Globe size={120} />
-        </div>
-        
-        <div className="flex flex-col items-center text-center relative z-10">
-          <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center text-5xl shadow-xl mb-4 border-4 border-white">
-            🧙‍♂️
-          </div>
-          <h2 className="text-2xl font-black text-slate-900">Language Explorer</h2>
-          
-          <div className="flex items-center gap-3 mt-3 bg-[#F2F2F7] pl-4 pr-3 py-1.5 rounded-full">
-             <span className="text-sm font-semibold text-gray-500">{settings.nativeLanguage}</span>
-             <ArrowRight size={14} className="text-gray-300" />
-             <span className="text-sm font-bold text-black flex items-center gap-1">
-               {settings.targetLanguage}
-             </span>
-          </div>
-        </div>
-        
-        {/* Main Stats Row */}
-        <div className="flex justify-between mt-8 px-6 max-w-sm mx-auto">
-           <div className="text-center flex-1">
-              <div className="text-2xl font-black text-slate-900">{stats.notes}</div>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.scenes}</div>
-           </div>
-           <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
-           <div className="text-center flex-1">
-              <div className="text-2xl font-black text-slate-900">{stats.words}</div>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.words}</div>
-           </div>
-           <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
-           <div className="text-center flex-1">
-              <div className="text-2xl font-black text-slate-900">{masteredCount}</div>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.mastered}</div>
-           </div>
-        </div>
-      </div>
-
-      {/* Content Sections */}
-      <div className="px-5 space-y-5">
-        
-        {/* Daily Goal Card */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-white">
-          <div className="flex justify-between items-center mb-4">
-             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span className="bg-yellow-100 p-1.5 rounded-lg text-yellow-600"><Zap size={18} fill="currentColor" /></span>
-              {t.dailyGoal}
-            </h3>
-            <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded-full text-gray-500">{stats.notes}/{goalTarget}</span>
+      {/* Scrollable Container */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
+        {/* Header Card */}
+        <div className="bg-white pt-safe pb-8 px-6 rounded-b-[2.5rem] shadow-sm mb-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-5">
+             <Globe size={120} />
           </div>
           
-          <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
-            <div 
-              style={{ width: `${progressPercent}%` }} 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-1000 ease-out"
-            ></div>
+          <div className="flex flex-col items-center text-center relative z-10">
+            <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center text-5xl shadow-xl mb-4 border-4 border-white">
+              🧙‍♂️
+            </div>
+            <h2 className="text-2xl font-black text-slate-900">Language Explorer</h2>
+            
+            <div className="flex items-center gap-3 mt-3 bg-[#F2F2F7] pl-4 pr-3 py-1.5 rounded-full">
+               <span className="text-sm font-semibold text-gray-500">{settings.nativeLanguage}</span>
+               <ArrowRight size={14} className="text-gray-300" />
+               <span className="text-sm font-bold text-black flex items-center gap-1">
+                 {settings.targetLanguage}
+               </span>
+            </div>
           </div>
-          <p className="text-gray-500 text-sm font-medium">
-            {stats.notes >= goalTarget ? t.goalComplete : t.goalProgress(goalTarget - stats.notes)}
-          </p>
+          
+          {/* Main Stats Row */}
+          <div className="flex justify-between mt-8 px-6 max-w-sm mx-auto">
+             <div className="text-center flex-1">
+                <div className="text-2xl font-black text-slate-900">{stats.notes}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.scenes}</div>
+             </div>
+             <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
+             <div className="text-center flex-1">
+                <div className="text-2xl font-black text-slate-900">{stats.words}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.words}</div>
+             </div>
+             <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
+             <div className="text-center flex-1">
+                <div className="text-2xl font-black text-slate-900">{masteredCount}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.mastered}</div>
+             </div>
+          </div>
         </div>
 
-        {/* Menu Items */}
-        <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-white">
-           <button 
-             onClick={() => setShowSettings(true)}
-             className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors border-b border-gray-100"
-           >
-             <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                 <Settings size={16} />
+        {/* Content Sections */}
+        <div className="px-5 space-y-5">
+          
+          {/* Daily Goal Card */}
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-white">
+            <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span className="bg-yellow-100 p-1.5 rounded-lg text-yellow-600"><Zap size={18} fill="currentColor" /></span>
+                {t.dailyGoal}
+              </h3>
+              <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded-full text-gray-500">{stats.notes}/{goalTarget}</span>
+            </div>
+            
+            <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
+              <div 
+                style={{ width: `${progressPercent}%` }} 
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-1000 ease-out"
+              ></div>
+            </div>
+            <p className="text-gray-500 text-sm font-medium">
+              {stats.notes >= goalTarget ? t.goalComplete : t.goalProgress(goalTarget - stats.notes)}
+            </p>
+          </div>
+
+          {/* Menu Items */}
+          <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-white">
+             <button 
+               onClick={() => setShowSettings(true)}
+               className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors border-b border-gray-100"
+             >
+               <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                   <Settings size={16} />
+                 </div>
+                 <span className="font-semibold text-gray-700">{t.settings}</span>
                </div>
-               <span className="font-semibold text-gray-700">{t.settings}</span>
-             </div>
-             <ChevronDown size={16} className="text-gray-400 -rotate-90" />
-           </button>
-           
-           <button onClick={handleLogout} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-red-500">
-             <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500">
-                 <LogOut size={16} />
+               <ChevronDown size={16} className="text-gray-400 -rotate-90" />
+             </button>
+             
+             <button onClick={handleLogout} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-red-500">
+               <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+                   <LogOut size={16} />
+                 </div>
+                 <span className="font-semibold">{t.logout}</span>
                </div>
-               <span className="font-semibold">{t.logout}</span>
-             </div>
-           </button>
-        </div>
-        
-        <div className="text-center pt-4">
-          <p className="text-xs font-medium text-gray-300">PicPic v1.0.3</p>
+             </button>
+          </div>
+          
+          <div className="text-center pt-4">
+            <p className="text-xs font-medium text-gray-300">PhotoAITalk v1.0.0</p>
+          </div>
         </div>
       </div>
     </div>
@@ -1582,7 +1646,7 @@ const ProfilePage = () => {
 const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   // Simple persistence with localStorage
   const [settings, setSettingsState] = useState<UserSettings>(() => {
-    const saved = localStorage.getItem('picpic_settings');
+    const saved = localStorage.getItem('photoaitalk_settings');
     // Ensure dailyGoal exists (migration for existing users)
     const defaults = { nativeLanguage: 'English', targetLanguage: 'Spanish', dailyGoal: 5, onboarded: false };
     if (saved) {
@@ -1593,26 +1657,35 @@ const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   });
 
   const [notes, setNotesState] = useState<LearningNote[]>(() => {
-    const saved = localStorage.getItem('picpic_notes');
+    const saved = localStorage.getItem('photoaitalk_notes');
     return saved ? JSON.parse(saved) : [];
   });
 
   const updateSettings = (updates: Partial<UserSettings>) => {
     const newSettings = { ...settings, ...updates };
     setSettingsState(newSettings);
-    localStorage.setItem('picpic_settings', JSON.stringify(newSettings));
+    localStorage.setItem('photoaitalk_settings', JSON.stringify(newSettings));
   };
 
   const addNote = (note: LearningNote) => {
     const newNotes = [note, ...notes];
     setNotesState(newNotes);
-    localStorage.setItem('picpic_notes', JSON.stringify(newNotes));
+    try {
+      localStorage.setItem('photoaitalk_notes', JSON.stringify(newNotes));
+    } catch (e) {
+      console.error("Storage full or error saving notes", e);
+      // Fail silently but log error, keeping in-memory state so user can continue session
+    }
   };
 
   const updateNote = (id: string, updates: Partial<LearningNote>) => {
     const newNotes = notes.map(n => n.id === id ? { ...n, ...updates } : n);
     setNotesState(newNotes);
-    localStorage.setItem('picpic_notes', JSON.stringify(newNotes));
+    try {
+      localStorage.setItem('photoaitalk_notes', JSON.stringify(newNotes));
+    } catch (e) {
+      console.error("Storage full or error updating notes", e);
+    }
   };
 
   const t = TRANSLATIONS[settings.nativeLanguage] || TRANSLATIONS['English'];
