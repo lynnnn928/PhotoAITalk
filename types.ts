@@ -1,7 +1,10 @@
+
 export interface UserSettings {
   nativeLanguage: string;
   targetLanguage: string;
+  dailyGoal: number;
   onboarded: boolean;
+  apiKey?: string; // Optional custom API key
 }
 
 export interface InteractiveObject {
@@ -10,6 +13,7 @@ export interface InteractiveObject {
   nativeLabel: string; // Native language
   x: number; // Percentage 0-100
   y: number; // Percentage 0-100
+  isSaved?: boolean; // New: User collected this word
 }
 
 export type CommentPersona = 'Beginner' | 'Grammar Geek' | 'Poetic Master';
@@ -20,6 +24,7 @@ export interface AIComment {
   content: string; // Target language
   translation: string; // Native language
   isExpanded?: boolean;
+  isSaved?: boolean; // New: User collected this sentence
 }
 
 export interface LearningNote {
@@ -28,7 +33,7 @@ export interface LearningNote {
   timestamp: number;
   objects: InteractiveObject[];
   comments: AIComment[];
-  isStarred: boolean; // "Add to Vocabulary"
+  isStarred: boolean; // "Add to Vocabulary" (Keep for legacy/whole note context)
   isMastered: boolean; // "Heart"
   userSentence?: string;
 }

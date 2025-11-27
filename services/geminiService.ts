@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { InteractiveObject, AIComment } from "../types";
 
@@ -31,15 +32,26 @@ async function decodeAudioData(
   return buffer;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to initialize AI client dynamically
+const getAIClient = (customKey?: string) => {
+  // Priority: Function Arg -> LocalStorage (handled in app state) -> Env Var
+  const key = customKey || process.env.API_KEY;
+  if (!key) {
+    console.warn("No API Key available");
+  }
+  return new GoogleGenAI({ apiKey: key || '' });
+};
 
 export const analyzeImage = async (
   base64Image: string,
   mimeType: string,
   nativeLang: string,
-  targetLang: string
+  targetLang: string,
+  apiKey?: string
 ): Promise<{ objects: InteractiveObject[]; comments: AIComment[] }> => {
   
+  const ai = getAIClient(apiKey);
+
   const prompt = `
     Analyze this image for a language learner. 
     Native Language: ${nativeLang}. 
@@ -128,8 +140,9 @@ interface TTSCallbacks {
   onEnded?: () => void;
 }
 
-export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks) => {
+export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, apiKey?: string) => {
   try {
+    const ai = getAIClient(apiKey);
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: text }] }],
