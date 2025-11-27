@@ -545,14 +545,17 @@ const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
             </div>
           </div>
 
-          {/* API Config (Key & Base URL) */}
+          {/* API Config (Key & Base URL) - HIDDEN BY DEFAULT FOR USER SAFETY
+              Developers: Uncomment this block if you want to allow users to input their own keys via UI,
+              or configure it in services/geminiService.ts using process.env.API_KEY
+          */}
+          {/*
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-white">
              <div className="flex items-center gap-3 mb-4 text-slate-800 font-bold">
                <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><Key size={20} /></div>
                {t.apiKey}
              </div>
              
-             {/* API Key Input */}
              <div className="space-y-2 mb-4">
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider ml-1">API Key</p>
                 <input 
@@ -565,7 +568,6 @@ const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 />
              </div>
 
-             {/* Base URL Input */}
              <div className="space-y-2">
                  <div className="flex items-center gap-2">
                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider ml-1">{t.apiBaseUrl}</p>
@@ -584,6 +586,7 @@ const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                {t.apiKeyDesc}
              </p>
           </div>
+          */}
 
         </div>
       </div>

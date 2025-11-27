@@ -1,3 +1,4 @@
+
 # PhotoAITalk 📸🌿
 
 **Turn your world into a language lesson.**
@@ -57,17 +58,27 @@ Run PhotoAITalk locally on your machine:
    ```bash
    npm install
    ```
-3. **Start the server**:
+3. **Configure the API Key**:
+   > **Important Note:** This app uses the **Google GenAI SDK**. Both Visual Analysis (Gemini 2.5 Flash) and Audio Generation (Gemini 2.5 Flash TTS) are handled by the same SDK and typically use the same API key. You do *not* need separate keys for Vision and TTS.
+   
+   Create a `.env` file in the root directory (or rename `.env.example` if available) and add your key:
+   ```bash
+   API_KEY=your_gemini_api_key_here
+   ```
+   
+   *The frontend configuration UI has been disabled for security. If you are a developer and wish to enable dynamic key entry in the UI, uncomment the configuration block in `src/App.tsx`.*
+
+4. **Start the server**:
    ```bash
    npm run dev
    ```
-4. Open `http://localhost:5173` in your browser.
+5. Open `http://localhost:5173` in your browser.
 
 #### ⚙️ Custom API Configuration
-PhotoAITalk supports custom API endpoints (e.g., proxies or gateways).
-1. Go to **Profile** > **Settings**.
-2. Enter your **API Key**.
-3. Enter your **API Base URL** (Default is `https://generativelanguage.googleapis.com`).
+If you need to use a proxy or custom gateway:
+1. Open `services/geminiService.ts`.
+2. Locate the `getAIClient` function.
+3. You can hardcode your `baseUrl` there or pass it via environment variables if your build process supports it.
 
 ### 🛠️ Technology Stack
 
@@ -110,14 +121,18 @@ PhotoAITalk 是一款视觉化、AI 驱动的语言学习应用，它能将你�
    git clone https://github.com/your-username/photoaitalk.git
    ```
 2. **安装依赖**：`npm install`
-3. **启动服务**：`npm run dev`
-4. 访问 `http://localhost:5173`。
+3. **配置 API Key**：
+   > **注意**：本应用使用 **Google GenAI SDK**。视觉分析 (Gemini 2.5 Flash) 和语音合成 (Gemini 2.5 Flash TTS) 均由同一个 SDK 处理，通常使用同一个 API Key，无需分别配置。
 
-#### ⚙️ 自定义 API 配置 (替换接口)
-本应用支持用户替换 API 接口地址（例如使用代理或自定义网关）。
-1. 进入 **个人中心** > **设置**。
-2. 输入您的 **API Key**。
-3. 在 **API Base URL** 中输入自定义地址（例如：`https://my-custom-proxy.com`）。
+   在根目录创建 `.env` 文件，并添加：
+   ```bash
+   API_KEY=your_gemini_api_key_here
+   ```
+   
+   *出于安全考虑，前端配置 UI 已被禁用。如果您是开发者并希望在 UI 中启用动态 Key 输入，请取消注释 `src/App.tsx` 中的配置块。*
+
+4. **启动服务**：`npm run dev`
+5. 访问 `http://localhost:5173`。
 
 ---
 
@@ -128,22 +143,12 @@ PhotoAITalk 是一款视觉化、AI 驱动的语言学习应用，它能将你�
 
 PhotoAITalk es una aplicación de aprendizaje de idiomas visual impulsada por IA que transforma tu entorno cotidiano en lecciones inmersivas.
 
-### ✨ Características Principales
-- **Inteligencia Visual**: Análisis instantáneo con **Gemini 2.5 Flash**.
-- **Personajes de IA**: Aprende con niveles Principiante, Experto y Poético.
-- **Audio Inmersivo**: Texto a voz nativo para practicar pronunciación.
-
 ### 🚀 Despliegue y Uso
-
-#### 🌐 Experiencia en Línea
-* **[Enlace a la Demostración]**
 
 #### 💻 Desarrollo Local
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ Configuración de API Personalizada
-Puedes reemplazar el endpoint de la API en **Ajustes** > **URL Base de la API**.
+2. Configure su API Key en un archivo `.env`: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -154,22 +159,12 @@ Puedes reemplazar el endpoint de la API en **Ajustes** > **URL Base de la API**.
 
 PhotoAITalk est une application d'apprentissage des langues visuelle et alimentée par l'IA qui transforme votre environnement quotidien en leçons immersives.
 
-### ✨ Fonctionnalités
-- **Intelligence Visuelle**: Analyse de scène avec **Gemini 2.5 Flash**.
-- **Personnages IA**: Apprenez avec des phrases adaptées à votre niveau.
-- **Jardin Visuel**: Collectionnez vos souvenirs d'apprentissage.
-
 ### 🚀 Commencer
-
-#### 🌐 Expérience en Ligne
-* **[Lien vers la Démo]**
 
 #### 💻 Déploiement Local
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ Configuration API
-Vous pouvez configurer une **URL de base API** personnalisée dans les paramètres.
+2. Configurez votre clé API dans un fichier `.env` : `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -180,22 +175,12 @@ Vous pouvez configurer une **URL de base API** personnalisée dans les paramètr
 
 PhotoAITalkは、日常の風景を没入型の語学レッスンに変える、視覚的AI語学学習アプリです。
 
-### ✨ 主な機能
-- **視覚的インテリジェンス**: **Gemini 2.5 Flash** による即時シーン分析。
-- **適応型AI**: 初心者から詩的な表現まで、3つのレベルで学習。
-- **発音練習**: 高品質なAI音声合成。
-
 ### 🚀 始め方
-
-#### 🌐 オンライン体験
-* **[デモサイトへのリンク]**
 
 #### 💻 ローカルでの実行
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ API設定 (インターフェースの置換)
-設定画面で **API Base URL** を変更することで、独自のプロキシやゲートウェイを使用できます。
+2. `.env` ファイルでAPIキーを設定してください: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -206,21 +191,12 @@ PhotoAITalkは、日常の風景を没入型の語学レッスンに変える、
 
 PhotoAITalk는 일상의 주변 환경을 몰입형 언어 수업으로 바꿔주는 시각적 AI 기반 언어 학습 애플리케이션입니다.
 
-### ✨ 핵심 기능
-- **시각 지능**: **Gemini 2.5 Flash**를 통한 즉각적인 분석.
-- **맞춤형 AI**: 초보자, 문법 전문가, 시적 거장 모드 지원.
-
 ### 🚀 시작하기
-
-#### 🌐 온라인 체험
-* **[라이브 데모 링크]**
 
 #### 💻 로컬 배포
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ API 구성
-설정 메뉴에서 **API 기본 URL**을 변경하여 맞춤형 인터페이스를 사용할 수 있습니다.
+2. `.env` 파일에 API 키를 구성하십시오: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -233,15 +209,10 @@ PhotoAITalk ist eine visuelle, KI-gestützte Sprachlern-App.
 
 ### 🚀 Erste Schritte
 
-#### 🌐 Online-Erlebnis
-* **[Link zur Demo]**
-
 #### 💻 Lokale Entwicklung
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ API-Konfiguration
-Sie können die **API-Basis-URL** in den Einstellungen anpassen.
+2. Konfigurieren Sie Ihren API-Key in einer `.env`-Datei: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -254,15 +225,10 @@ PhotoAITalk è un'applicazione di apprendimento linguistico visivo basata sull'I
 
 ### 🚀 Iniziare
 
-#### 🌐 Esperienza Online
-* **[Link alla Demo]**
-
 #### 💻 Sviluppo Locale
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ Configurazione API
-Puoi configurare un **URL Base API** personalizzato nelle impostazioni.
+2. Configura la tua chiave API in un file `.env`: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -273,15 +239,10 @@ Puoi configurare un **URL Base API** personalizzato nelle impostazioni.
 
 ### 🚀 Начало работы
 
-#### 🌐 Онлайн-опыт
-* **[Ссылка на демо]**
-
 #### 💻 Локальный запуск
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ Настройка API
-Вы можете изменить **Базовый URL API** в настройках для использования прокси.
+2. Настройте ваш API-ключ в файле `.env`: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
@@ -292,15 +253,10 @@ Puoi configurare un **URL Base API** personalizzato nelle impostazioni.
 
 ### 🚀 Começando
 
-#### 🌐 Experiência Online
-* **[Link para a Demo]**
-
 #### 💻 Desenvolvimento Local
 1. `npm install`
-2. `npm run dev`
-
-#### ⚙️ Configuração da API
-Você pode definir uma **URL Base da API** personalizada nas configurações.
+2. Configure sua chave de API em um arquivo `.env`: `API_KEY=...`
+3. `npm run dev`
 
 ---
 
