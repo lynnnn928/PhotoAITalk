@@ -64,6 +64,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "No more photos, upload more!",
     apiBaseUrl: "API Base URL (Optional)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Tap a word to learn more",
+    analyzingWord: "Analyzing word...",
   },
   Chinese: {
     nativeTitle: "您的母语是？",
@@ -104,6 +106,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "没有图片了，上传更多图片吧",
     apiBaseUrl: "API 基础地址 (可选)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "点击单词查看详情",
+    analyzingWord: "正在解析单词...",
   },
   Spanish: {
     nativeTitle: "¿Cuál es tu lengua materna?",
@@ -144,6 +148,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "No más fotos. ¡Sube más!",
     apiBaseUrl: "URL Base de la API (Opcional)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Toca una palabra para aprender",
+    analyzingWord: "Analizando palabra...",
   },
   French: {
     nativeTitle: "Quelle est votre langue maternelle ?",
@@ -184,6 +190,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "Plus de photos. Téléchargez-en plus !",
     apiBaseUrl: "URL de base de l'API (Facultatif)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Appuyez sur un mot pour en savoir plus",
+    analyzingWord: "Analyse du mot...",
   },
    Japanese: {
     nativeTitle: "母国語は何ですか？",
@@ -224,6 +232,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "写真はもうありません。もっとアップロードしましょう！",
     apiBaseUrl: "APIベースURL（任意）",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "単語をタップして学習",
+    analyzingWord: "単語を分析中...",
   },
   Korean: {
     nativeTitle: "모국어가 무엇인가요?",
@@ -264,6 +274,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "더 이상 사진이 없습니다. 더 업로드하세요!",
     apiBaseUrl: "API 기본 URL (선택 사항)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "단어를 탭하여 학습",
+    analyzingWord: "단어 분석 중...",
   },
   German: {
     nativeTitle: "Was ist deine Muttersprache?",
@@ -304,6 +316,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "Keine Fotos mehr. Laden Sie mehr hoch!",
     apiBaseUrl: "API-Basis-URL (Optional)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Tippe auf ein Wort",
+    analyzingWord: "Analysiere Wort...",
   },
   Italian: {
     nativeTitle: "Qual è la tua lingua madre?",
@@ -344,6 +358,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "Niente più foto. Caricane altre!",
     apiBaseUrl: "URL Base API (Opzionale)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Tocca una parola per imparare",
+    analyzingWord: "Analisi della parola...",
   },
   Russian: {
     nativeTitle: "Какой ваш родной язык?",
@@ -384,6 +400,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "Больше нет фото. Загрузите еще!",
     apiBaseUrl: "Базовый URL API (необязательно)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Нажмите на слово, чтобы узнать больше",
+    analyzingWord: "Анализ слова...",
   },
   Portuguese: {
     nativeTitle: "Qual é a sua língua nativa?",
@@ -424,6 +442,8 @@ const TRANSLATIONS: Record<string, any> = {
     noMorePhotos: "Não há mais fotos. Envie mais!",
     apiBaseUrl: "URL Base da API (Opcional)",
     apiBaseUrlPlaceholder: "https://generativelanguage.googleapis.com",
+    tapWordToLearn: "Toque em uma palavra para aprender",
+    analyzingWord: "Analisando palavra...",
   }
 };
 
@@ -448,6 +468,45 @@ export const useApp = () => {
 };
 
 // --- Helper Components ---
+
+// Interactive Sentence Component for Tokenization
+const InteractiveSentence = ({ 
+  text, 
+  onWordClick 
+}: { 
+  text: string; 
+  onWordClick: (word: string) => void;
+}) => {
+  // Simple tokenization by splitting on spaces and keeping punctuation
+  // This is basic and primarily works for space-delimited languages.
+  // For production Asian languages support, Intl.Segmenter is better but varies in browser support.
+  // We'll use a regex that splits by non-word characters but keeps them to preserve flow.
+  const tokens = text.split(/([^\w\u00C0-\u00FF]+)/).filter(t => t);
+
+  return (
+    <p className="text-lg leading-snug font-medium mb-1 drop-shadow-sm pr-6 select-none">
+      {tokens.map((token, i) => {
+        // Check if token is a word (contains letters)
+        const isWord = /[\w\u00C0-\u00FF]/.test(token);
+        
+        if (!isWord) return <span key={i}>{token}</span>;
+
+        return (
+          <span
+            key={i}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent playing the full sentence audio
+              onWordClick(token);
+            }}
+            className="hover:bg-white/20 hover:text-green-300 rounded px-0.5 cursor-pointer transition-colors active:scale-95 inline-block"
+          >
+            {token}
+          </span>
+        );
+      })}
+    </p>
+  );
+};
 
 const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { settings, updateSettings, t } = useApp();
@@ -1039,12 +1098,15 @@ const DetailView = () => {
   const [previewObjectId, setPreviewObjectId] = useState<string | null>(null);
   const [activeObject, setActiveObject] = useState<InteractiveObject | null>(null);
   const [audioLoadingId, setAudioLoadingId] = useState<string | null>(null);
+  
+  // Word Lookup State
+  const [isLookingUpWord, setIsLookingUpWord] = useState(false);
 
   const [inputText, setInputText] = useState('');
   const [showPoster, setShowPoster] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null); // For poster selection
   const [isPosterOverlay, setIsPosterOverlay] = useState(true); // Poster layout mode
-  const [commentsCollapsed, setCommentsCollapsed] = useState(false);
+  const [commentsCollapsed, setCommentsCollapsed] = useState(true);
   
   // Toasts
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -1073,6 +1135,17 @@ const DetailView = () => {
               settings.apiKey,
               settings.apiBaseUrl // Pass custom base URL
             );
+
+            // --- Background Audio Prefetching ---
+            // Trigger TTS generation for all comments and objects immediately
+            // This runs in parallel and caches the audio so it's ready when the user clicks
+            analysis.comments.forEach(c => {
+              GeminiService.prefetchAudio(c.content, settings.apiKey, settings.apiBaseUrl);
+            });
+            analysis.objects.forEach(o => {
+              GeminiService.prefetchAudio(o.label, settings.apiKey, settings.apiBaseUrl);
+            });
+            // ------------------------------------
 
             const newNote: LearningNote = {
               id: Date.now().toString(),
@@ -1184,9 +1257,21 @@ const DetailView = () => {
   // Toggle saving an individual object (word)
   const toggleObjectSave = (objId: string) => {
     if (!currentNote) return;
-    const updatedObjects = currentNote.objects.map(obj => 
-      obj.id === objId ? { ...obj, isSaved: !obj.isSaved } : obj
-    );
+
+    // Check if it's a new word added from text (may not be in objects list yet if ephemeral)
+    const exists = currentNote.objects.find(obj => obj.id === objId);
+    let updatedObjects = [...currentNote.objects];
+
+    if (!exists && activeObject && activeObject.id === objId) {
+      // It's a new ad-hoc word being saved
+      updatedObjects.push({ ...activeObject, isSaved: true });
+    } else {
+      // It's an existing object
+      updatedObjects = currentNote.objects.map(obj => 
+        obj.id === objId ? { ...obj, isSaved: !obj.isSaved } : obj
+      );
+    }
+
     const updatedNote = { ...currentNote, objects: updatedObjects };
     setCurrentNote(updatedNote);
     
@@ -1219,6 +1304,46 @@ const DetailView = () => {
       },
       onEnded: () => setAudioLoadingId(null)
     }, settings.apiKey, settings.apiBaseUrl); // Pass custom base URL
+  };
+
+  const handleWordClick = async (word: string, context: string) => {
+     setIsLookingUpWord(true);
+     setAudioLoadingId('word-lookup'); // Hack to show some loading state nearby if needed
+     
+     // Temporary object placeholder
+     const tempId = `word-${Date.now()}`;
+     setActiveObject({
+       id: tempId,
+       label: word,
+       nativeLabel: t.analyzingWord,
+       x: -1, // Mark as non-visual on image
+       y: -1,
+       isSaved: false
+     });
+
+     try {
+       const result = await GeminiService.lookupWord(
+         word, 
+         context, 
+         settings.nativeLanguage, 
+         settings.targetLanguage, 
+         settings.apiKey,
+         settings.apiBaseUrl
+       );
+
+       // Update the active object with real data
+       setActiveObject(prev => prev ? ({
+         ...prev,
+         label: result.label,
+         nativeLabel: result.nativeLabel
+       }) : null);
+
+     } catch (e) {
+       console.error("Failed to lookup word");
+     } finally {
+       setIsLookingUpWord(false);
+       setAudioLoadingId(null);
+     }
   };
 
   const openPoster = () => {
@@ -1305,9 +1430,9 @@ const DetailView = () => {
         </div>
       )}
 
-      {/* Interactive Bubbles Layer */}
+      {/* Interactive Bubbles Layer - Only show dots for objects with valid coordinates */}
       <div className="absolute inset-0 z-10">
-        {currentNote.objects.map(obj => {
+        {currentNote.objects.filter(obj => obj.x >= 0 && obj.y >= 0).map(obj => {
           const isPreview = previewObjectId === obj.id;
           
           return (
@@ -1351,7 +1476,7 @@ const DetailView = () => {
         })}
       </div>
 
-      {/* Full Object Card (Popover) */}
+      {/* Full Object Card (Popover) - Reused for Word Lookup */}
       {activeObject && (
         <>
           <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-sm" onClick={() => setActiveObject(null)} />
@@ -1372,7 +1497,15 @@ const DetailView = () => {
              </button>
 
              <h3 className="text-3xl font-bold text-[#34C759] mb-1 mt-4">{activeObject.label}</h3>
-             <p className="text-gray-500 mb-6 font-medium text-lg">{activeObject.nativeLabel}</p>
+             
+             {isLookingUpWord ? (
+                <div className="flex items-center justify-center gap-2 py-4">
+                   <Loader2 className="animate-spin text-gray-400" size={20} />
+                   <p className="text-gray-400 font-medium">{t.analyzingWord}</p>
+                </div>
+             ) : (
+                <p className="text-gray-500 mb-6 font-medium text-lg leading-relaxed">{activeObject.nativeLabel}</p>
+             )}
              
              <button 
                 onClick={() => handlePlayAudio(activeObject.label, activeObject.id)} 
@@ -1410,6 +1543,9 @@ const DetailView = () => {
         {/* Scrollable List */}
         {!commentsCollapsed && (
           <div className="overflow-y-auto no-scrollbar space-y-3 pb-2">
+             {/* Hint Text */}
+            <p className="text-white/40 text-xs text-center font-medium animate-pulse">{t.tapWordToLearn}</p>
+            
             {currentNote.comments.map((comment, idx) => (
               <div key={comment.id} className="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/10 text-white relative group">
                 <div className="flex items-center justify-between mb-1">
@@ -1435,7 +1571,13 @@ const DetailView = () => {
                     <Bookmark size={14} fill={comment.isSaved ? "currentColor" : "none"} />
                   </button>
                 </div>
-                <p className="text-lg leading-snug font-medium mb-1 drop-shadow-sm pr-6">{comment.content}</p>
+                
+                {/* Interactive Sentence */}
+                <InteractiveSentence 
+                  text={comment.content} 
+                  onWordClick={(word) => handleWordClick(word, comment.content)} 
+                />
+
                 <p className="text-sm text-white/70">{comment.translation}</p>
               </div>
             ))}
@@ -1562,221 +1704,167 @@ const DetailView = () => {
   );
 };
 
-// 6. Profile Page (Redesigned)
+// 6. Profile Page (Settings & Stats)
 const ProfilePage = () => {
-  const { notes, settings, updateSettings, t } = useApp();
-  const navigate = useNavigate();
+  const { settings, stats, t } = useApp();
   const [showSettings, setShowSettings] = useState(false);
 
-  const stats = {
-    notes: notes.length,
-    words: notes.reduce((acc, note) => acc + note.objects.length, 0),
-    sentences: notes.reduce((acc, note) => acc + (note.userSentence ? 1 : 0), 0)
-  };
-
-  const masteredCount = notes.filter(n => n.isMastered).length;
-  // Use settings.dailyGoal with a default fallback of 5
-  const goalTarget = settings.dailyGoal || 5;
-  const progressPercent = Math.min((stats.notes / goalTarget) * 100, 100);
-
-  const handleLogout = () => {
-    // In a real app this would clear session, here we just go to onboarding for demo
-    updateSettings({ onboarded: false });
-    navigate('/onboarding');
-  };
-
   return (
-    <div className="h-full bg-[#F2F2F7] flex flex-col overflow-hidden">
-      {/* Settings Modal */}
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
-
-      {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
-        {/* Header Card */}
-        <div className="bg-white pt-safe pb-8 px-6 rounded-b-[2.5rem] shadow-sm mb-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-5">
-             <Globe size={120} />
-          </div>
-          
-          <div className="flex flex-col items-center text-center relative z-10">
-            <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center text-5xl shadow-xl mb-4 border-4 border-white">
-              🧙‍♂️
-            </div>
-            <h2 className="text-2xl font-black text-slate-900">Language Explorer</h2>
-            
-            <div className="flex items-center gap-3 mt-3 bg-[#F2F2F7] pl-4 pr-3 py-1.5 rounded-full">
-               <span className="text-sm font-semibold text-gray-500">{settings.nativeLanguage}</span>
-               <ArrowRight size={14} className="text-gray-300" />
-               <span className="text-sm font-bold text-black flex items-center gap-1">
-                 {settings.targetLanguage}
-               </span>
-            </div>
-          </div>
-          
-          {/* Main Stats Row */}
-          <div className="flex justify-between mt-8 px-6 max-w-sm mx-auto">
-             <div className="text-center flex-1">
-                <div className="text-2xl font-black text-slate-900">{stats.notes}</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.scenes}</div>
-             </div>
-             <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
-             <div className="text-center flex-1">
-                <div className="text-2xl font-black text-slate-900">{stats.words}</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.words}</div>
-             </div>
-             <div className="w-px bg-gray-100 h-10 self-center mx-2"></div>
-             <div className="text-center flex-1">
-                <div className="text-2xl font-black text-slate-900">{masteredCount}</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t.mastered}</div>
-             </div>
-          </div>
-        </div>
-
-        {/* Content Sections */}
-        <div className="px-5 space-y-5">
-          
-          {/* Daily Goal Card */}
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-white">
-            <div className="flex justify-between items-center mb-4">
-               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span className="bg-yellow-100 p-1.5 rounded-lg text-yellow-600"><Zap size={18} fill="currentColor" /></span>
-                {t.dailyGoal}
-              </h3>
-              <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded-full text-gray-500">{stats.notes}/{goalTarget}</span>
-            </div>
-            
-            <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
-              <div 
-                style={{ width: `${progressPercent}%` }} 
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-1000 ease-out"
-              ></div>
-            </div>
-            <p className="text-gray-500 text-sm font-medium">
-              {stats.notes >= goalTarget ? t.goalComplete : t.goalProgress(goalTarget - stats.notes)}
-            </p>
-          </div>
-
-          {/* Menu Items */}
-          <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-white">
-             <button 
-               onClick={() => setShowSettings(true)}
-               className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors border-b border-gray-100"
-             >
-               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                   <Settings size={16} />
-                 </div>
-                 <span className="font-semibold text-gray-700">{t.settings}</span>
-               </div>
-               <ChevronDown size={16} className="text-gray-400 -rotate-90" />
-             </button>
-             
-             <button onClick={handleLogout} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-red-500">
-               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500">
-                   <LogOut size={16} />
-                 </div>
-                 <span className="font-semibold">{t.logout}</span>
-               </div>
+    <div className="h-full bg-[#F2F2F7] flex flex-col animate-in fade-in duration-300">
+       <div className="pt-safe px-6 pb-6 bg-white shadow-sm z-10">
+          <div className="flex justify-between items-center mb-6">
+             <h1 className="text-3xl font-black text-slate-900">{t.settings}</h1>
+             <button onClick={() => setShowSettings(true)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
+               <Settings size={24} className="text-slate-700" />
              </button>
           </div>
           
-          <div className="text-center pt-4">
-            <p className="text-xs font-medium text-gray-300">PhotoAITalk v1.0.0</p>
+          <div className="flex items-center gap-4 mb-6">
+             <div className="w-20 h-20 bg-gradient-to-br from-[#34C759] to-emerald-600 rounded-full flex items-center justify-center text-4xl shadow-lg shadow-green-200">
+                🌱
+             </div>
+             <div>
+                <h2 className="text-xl font-bold text-slate-900">Gardener</h2>
+                <p className="text-gray-500 font-medium">Level 1 • {settings.targetLanguage}</p>
+             </div>
           </div>
-        </div>
-      </div>
+
+          <div className="grid grid-cols-3 gap-3">
+             <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                <div className="text-2xl font-black text-slate-900">{stats.noteCount}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{t.scenes}</div>
+             </div>
+             <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                <div className="text-2xl font-black text-slate-900">{stats.wordCount}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{t.words}</div>
+             </div>
+             <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                <div className="text-2xl font-black text-slate-900">{stats.sentenceCount}</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{t.mastered}</div>
+             </div>
+          </div>
+       </div>
+       
+       <div className="flex-1 p-6 flex items-center justify-center opacity-30">
+          <div className="text-center">
+            <Flower size={48} className="mx-auto mb-2 text-gray-400" />
+            <p className="text-gray-500 font-medium">More stats coming soon</p>
+          </div>
+       </div>
+
+       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 };
 
+// --- App Orchestration ---
 
-// --- Main App Logic ---
-
-const AppProvider = ({ children }: { children?: React.ReactNode }) => {
-  // Simple persistence with localStorage
-  const [settings, setSettingsState] = useState<UserSettings>(() => {
-    const saved = localStorage.getItem('photoaitalk_settings');
-    // Ensure dailyGoal exists (migration for existing users)
-    const defaults = { nativeLanguage: 'English', targetLanguage: 'Spanish', dailyGoal: 5, onboarded: false };
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...defaults, ...parsed };
+const AppProvider = ({ children }: { children: React.ReactNode }) => {
+  // Load settings from localStorage
+  const [settings, setSettings] = useState<UserSettings>(() => {
+    try {
+      const saved = localStorage.getItem('userSettings');
+      return saved ? JSON.parse(saved) : {
+        nativeLanguage: 'English',
+        targetLanguage: 'Spanish',
+        dailyGoal: 5,
+        onboarded: false,
+      };
+    } catch {
+       return {
+        nativeLanguage: 'English',
+        targetLanguage: 'Spanish',
+        dailyGoal: 5,
+        onboarded: false,
+      };
     }
-    return defaults;
   });
 
-  const [notes, setNotesState] = useState<LearningNote[]>(() => {
-    const saved = localStorage.getItem('photoaitalk_notes');
-    return saved ? JSON.parse(saved) : [];
+  // Load notes from localStorage
+  const [notes, setNotes] = useState<LearningNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('learningNotes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
+
+  useEffect(() => {
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('learningNotes', JSON.stringify(notes));
+    } catch (e) {
+      console.error("Storage full?", e);
+    }
+  }, [notes]);
 
   const updateSettings = (updates: Partial<UserSettings>) => {
-    const newSettings = { ...settings, ...updates };
-    setSettingsState(newSettings);
-    localStorage.setItem('photoaitalk_settings', JSON.stringify(newSettings));
+    setSettings(prev => ({ ...prev, ...updates }));
   };
 
   const addNote = (note: LearningNote) => {
-    const newNotes = [note, ...notes];
-    setNotesState(newNotes);
-    try {
-      localStorage.setItem('photoaitalk_notes', JSON.stringify(newNotes));
-    } catch (e) {
-      console.error("Storage full or error saving notes", e);
-      // Fail silently but log error, keeping in-memory state so user can continue session
-    }
+    setNotes(prev => [note, ...prev]);
   };
 
   const updateNote = (id: string, updates: Partial<LearningNote>) => {
-    const newNotes = notes.map(n => n.id === id ? { ...n, ...updates } : n);
-    setNotesState(newNotes);
-    try {
-      localStorage.setItem('photoaitalk_notes', JSON.stringify(newNotes));
-    } catch (e) {
-      console.error("Storage full or error updating notes", e);
-    }
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+  };
+
+  const stats: Stats = {
+    noteCount: notes.length,
+    wordCount: notes.reduce((acc, n) => acc + n.objects.filter(o => o.isSaved).length, 0),
+    sentenceCount: notes.reduce((acc, n) => acc + n.comments.filter(c => c.isSaved).length, 0) + notes.filter(n => n.isMastered).length, 
   };
 
   const t = TRANSLATIONS[settings.nativeLanguage] || TRANSLATIONS['English'];
 
   return (
-    <AppContext.Provider value={{ 
-      settings, 
-      updateSettings, 
-      notes, 
-      addNote, 
-      updateNote, 
-      stats: { noteCount: notes.length, wordCount: 0, sentenceCount: 0 },
-      t
-    }}>
+    <AppContext.Provider value={{ settings, updateSettings, notes, addNote, updateNote, stats, t }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { settings } = useApp();
-  if (!settings.onboarded) {
-    return <Navigate to="/onboarding" replace />;
-  }
-  return <>{children}</>;
+const AppContent = () => {
+   const { settings } = useApp();
+   const location = useLocation();
+   const navigate = useNavigate();
+
+   // Redirect to onboarding if not done
+   useEffect(() => {
+     if (!settings.onboarded && location.pathname !== '/onboarding') {
+       navigate('/onboarding', { replace: true });
+     }
+   }, [settings.onboarded, location.pathname, navigate]);
+
+   return (
+      <div className="h-full w-full flex flex-col bg-[#F2F2F7]">
+        <div className="flex-1 relative overflow-hidden w-full h-full">
+           <Routes>
+             <Route path="/onboarding" element={<Onboarding />} />
+             <Route path="/" element={<HomePage />} />
+             <Route path="/profile" element={<ProfilePage />} />
+             <Route path="/detail/:id" element={<DetailView />} />
+             <Route path="*" element={<Navigate to="/" replace />} />
+           </Routes>
+        </div>
+        <BottomNav />
+      </div>
+   );
 };
 
-export default function App() {
+const App = () => {
   return (
     <HashRouter>
       <AppProvider>
-        <div className="font-sans antialiased text-slate-900 bg-[#F2F2F7] h-full selection:bg-green-200">
-          <Routes>
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-            <Route path="/detail/:id" element={<ProtectedRoute><DetailView /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          </Routes>
-          <BottomNav />
-        </div>
+        <AppContent />
       </AppProvider>
     </HashRouter>
   );
-}
+};
+
+export default App;

@@ -148,17 +148,111 @@ export const analyzeImage = async (
   }
 };
 
+export const lookupWord = async (
+  word: string,
+  contextSentence: string,
+  nativeLang: string,
+  targetLang: string,
+  apiKey?: string,
+  apiBaseUrl?: string
+): Promise<{ label: string; nativeLabel: string }> => {
+  const ai = getAIClient(apiKey, apiBaseUrl);
+  
+  const prompt = `
+    I am learning ${targetLang}. I clicked the word "${word}" in the sentence "${contextSentence}".
+    Please explain this specific word.
+    Return JSON:
+    {
+      "label": "${word}",
+      "nativeLabel": "The translation or brief definition of '${word}' in ${nativeLang} based on the context."
+    }
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ text: prompt }],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            label: { type: Type.STRING },
+            nativeLabel: { type: Type.STRING },
+          },
+        },
+      },
+    });
+    
+    const jsonText = response.text || "{}";
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error("Lookup Word Error", error);
+    // Fallback if AI fails: just return the word itself
+    return { label: word, nativeLabel: "..." };
+  }
+};
+
 interface TTSCallbacks {
   onPlaying?: () => void;
   onEnded?: () => void;
 }
 
-export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, apiKey?: string, apiBaseUrl?: string) => {
-  try {
-    const ai = getAIClient(apiKey, apiBaseUrl);
-    const response = await ai.models.generateContent({
+// Global Audio Context & Cache to improve performance and reduce latency
+let audioContext: AudioContext | null = null;
+const ttsCache = new Map<string, AudioBuffer>();
+const activeFetches = new Map<string, Promise<AudioBuffer | null>>();
+
+const getAudioContext = () => {
+  if (!audioContext) {
+    const AudioCtor = window.AudioContext || (window as any).webkitAudioContext;
+    audioContext = new AudioCtor({ sampleRate: 24000 });
+  }
+  return audioContext;
+};
+
+function playBuffer(ctx: AudioContext, buffer: AudioBuffer, callbacks?: TTSCallbacks) {
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  const outputNode = ctx.createGain();
+  
+  source.connect(outputNode);
+  outputNode.connect(ctx.destination);
+  
+  source.onended = () => {
+    callbacks?.onEnded?.();
+  };
+  
+  source.start();
+  callbacks?.onPlaying?.();
+}
+
+// Internal function to handle fetch, decode, and caching logic
+const fetchAudioData = async (text: string, apiKey?: string, apiBaseUrl?: string): Promise<AudioBuffer | null> => {
+  if (!text || !text.trim()) return null;
+
+  const cleanText = text.replace(/\*+/g, '').trim();
+  const cacheKey = `${cleanText}-${apiKey || 'default'}`;
+
+  // 1. Check Memory Cache
+  if (ttsCache.has(cacheKey)) {
+    return ttsCache.get(cacheKey)!;
+  }
+
+  // 2. Check Active Fetches (Deduplication)
+  if (activeFetches.has(cacheKey)) {
+    return activeFetches.get(cacheKey)!;
+  }
+
+  // 3. Perform Fetch
+  const fetchPromise = (async () => {
+    try {
+      const ai = getAIClient(apiKey, apiBaseUrl);
+      const ctx = getAudioContext(); // Initialize context for decoding
+
+      const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: text }] }],
+        contents: [{ parts: [{ text: cleanText }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
@@ -171,34 +265,56 @@ export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, a
 
       const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (!base64Audio) {
-        if (callbacks?.onEnded) callbacks.onEnded();
-        return;
+        console.warn("TTS: No audio data returned from model");
+        return null;
       }
 
-      const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-      const outputNode = outputAudioContext.createGain();
-      
       const audioBuffer = await decodeAudioData(
         decode(base64Audio),
-        outputAudioContext,
+        ctx,
         24000,
         1,
       );
       
-      const source = outputAudioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(outputNode);
-      outputNode.connect(outputAudioContext.destination);
-      
-      source.onended = () => {
-        if (callbacks?.onEnded) callbacks.onEnded();
-      };
-      
-      source.start();
-      if (callbacks?.onPlaying) callbacks.onPlaying();
+      // Cache the result
+      ttsCache.set(cacheKey, audioBuffer);
+      return audioBuffer;
 
-  } catch (error) {
-    console.error("TTS Error:", error);
-    if (callbacks?.onEnded) callbacks.onEnded();
+    } catch (error) {
+      console.error("TTS Error:", error);
+      return null;
+    } finally {
+      activeFetches.delete(cacheKey);
+    }
+  })();
+
+  activeFetches.set(cacheKey, fetchPromise);
+  return fetchPromise;
+};
+
+// Fire and forget prefetcher
+export const prefetchAudio = (text: string, apiKey?: string, apiBaseUrl?: string) => {
+  fetchAudioData(text, apiKey, apiBaseUrl).catch(e => console.error("Prefetch error", e));
+};
+
+export const playTextToSpeech = async (text: string, callbacks?: TTSCallbacks, apiKey?: string, apiBaseUrl?: string) => {
+  const ctx = getAudioContext();
+
+  // Resume context if suspended (browser autoplay policy)
+  if (ctx.state === 'suspended') {
+    try {
+      await ctx.resume();
+    } catch (e) {
+      console.warn("Could not resume audio context", e);
+    }
+  }
+
+  // Fetch or get from cache
+  const buffer = await fetchAudioData(text, apiKey, apiBaseUrl);
+  
+  if (buffer) {
+    playBuffer(ctx, buffer, callbacks);
+  } else {
+    callbacks?.onEnded?.();
   }
 };
