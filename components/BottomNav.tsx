@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Flower, Camera, User } from 'lucide-react';
 import { resizeImage } from '../utils/imageUtils';

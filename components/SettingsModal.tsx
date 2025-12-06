@@ -1,25 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { X, Zap, ChevronDown, Key, Link } from 'lucide-react';
+
+import { X, Zap, ChevronDown } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { LANGUAGES } from '../constants/languages';
 
 export const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     const { settings, updateSettings, t } = useApp();
-    const [tempKey, setTempKey] = useState(settings.apiKey || '');
-    const [tempBaseUrl, setTempBaseUrl] = useState(settings.apiBaseUrl || '');
-
-    // Sync temp key with settings when opened
-    useEffect(() => {
-        setTempKey(settings.apiKey || '');
-        setTempBaseUrl(settings.apiBaseUrl || '');
-    }, [isOpen, settings.apiKey, settings.apiBaseUrl]);
-
-    const handleSave = () => {
-        updateSettings({
-            apiKey: tempKey,
-            apiBaseUrl: tempBaseUrl
-        });
-    };
 
     if (!isOpen) return null;
 

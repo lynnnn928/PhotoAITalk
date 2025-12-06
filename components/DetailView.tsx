@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Loader2, ChevronLeft, ChevronRight, X, Share2, Volume2, Download,
-    ChevronDown, ChevronUp, Bookmark, Layers, AlignVerticalJustifyCenter,
-    AlertCircle, BookOpen, MoreVertical, Trash2, Eye, EyeOff
+    Bookmark, Layers, AlignVerticalJustifyCenter,
+    AlertCircle, MoreVertical, Trash2, Eye, EyeOff
 } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 
@@ -28,7 +28,7 @@ export const DetailView = () => {
     const [activeObject, setActiveObject] = useState<InteractiveObject | null>(null);
     const [audioLoadingId, setAudioLoadingId] = useState<string | null>(null);
 
-    const [inputText, setInputText] = useState('');
+
     const [showPoster, setShowPoster] = useState(false);
     const [posterDataUrl, setPosterDataUrl] = useState<string | null>(null); // For iOS save modal
     const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null); // For poster selection
@@ -433,7 +433,7 @@ export const DetailView = () => {
         setSelectedWord({
             text: cleanWord,
             translation: result.translation,
-            pinyin: result.pinyin,
+            pinyin: (result as any).pinyin,
             loading: false
         });
     };
@@ -642,7 +642,7 @@ export const DetailView = () => {
                 {/* Scrollable List */}
                 {!commentsCollapsed && (
                     <div className="overflow-y-auto no-scrollbar space-y-3 pb-2">
-                        {currentNote.comments.map((comment, idx) => (
+                        {currentNote.comments.map((comment, _idx) => (
                             <div key={comment.id} className="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/10 text-white relative group">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-2">

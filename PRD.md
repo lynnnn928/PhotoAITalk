@@ -99,6 +99,122 @@ graph TD
 
 ---
 
+## 📁 项目结构 | Project Structure
+
+```
+PhotoAITalk-1/
+├── App.tsx                    # 应用入口（仅路由配置，~56行）
+├── main.tsx                   # React 入口点
+├── index.html                 # HTML 模板
+├── vite.config.ts             # Vite 构建配置
+├── tailwind.config.js         # Tailwind CSS 配置
+├── server.js                  # 后端 Express 服务器
+├── package.json               # 项目依赖
+├── .env                       # 环境变量（API密钥，不提交到Git）
+│
+├── components/                # 🧩 UI 组件（模块化）
+│   ├── DetailView.tsx         # 图片详情页（主要功能界面）
+│   ├── HomePage.tsx           # 首页（笔记列表展示）
+│   ├── ProfilePage.tsx        # 个人中心页
+│   ├── Onboarding.tsx         # 引导页（语言选择）
+│   ├── BottomNav.tsx          # 底部导航栏
+│   ├── SettingsModal.tsx      # 设置弹窗
+│   ├── PopupCard.tsx          # 单词详情弹窗
+│   └── InteractiveSentence.tsx # 可点击翻译的句子组件
+│
+├── contexts/                  # 🔄 React Context（状态管理）
+│   └── AppContext.tsx         # 全局状态：settings, notes, t (翻译)
+│
+├── constants/                 # 📋 常量定义
+│   ├── languages.ts           # 支持的语言列表
+│   └── translations.ts        # UI 多语言翻译字符串
+│
+├── services/                  # 🌐 API 服务层
+│   ├── geminiService.ts       # 前端 API 客户端（调用后端）
+│   └── storageService.ts      # IndexedDB 存储服务
+│
+├── types/                     # 📝 TypeScript 类型定义
+│   └── index.ts               # UserSettings, LearningNote, etc.
+│
+└── utils/                     # 🔧 工具函数
+    └── imageUtils.ts          # 图片压缩处理
+```
+
+---
+
+## 🧩 模块职责说明 | Module Responsibilities
+
+### 📂 components/ - UI 组件
+
+| 组件 | 职责 |
+|------|------|
+| `DetailView.tsx` | 核心功能页：图片展示、物体标签、AI评论、海报生成 |
+| `HomePage.tsx` | 首页：笔记列表、搜索、花园/收藏切换 |
+| `ProfilePage.tsx` | 个人中心：统计数据、每日目标、设置入口 |
+| `Onboarding.tsx` | 首次使用引导：选择母语和目标语言 |
+| `BottomNav.tsx` | 底部导航：首页、拍照、个人中心 |
+| `SettingsModal.tsx` | 设置弹窗：语言切换、每日目标、API配置 |
+| `PopupCard.tsx` | 单词卡片：显示翻译、发音按钮、收藏功能 |
+
+### 📂 contexts/ - 状态管理
+
+| Context | 提供的状态/方法 |
+|---------|----------------|
+| `AppContext.tsx` | `settings`, `updateSettings`, `notes`, `addNote`, `updateNote`, `deleteNote`, `stats`, `t` |
+
+### 📂 services/ - API 服务
+
+| 服务 | 职责 |
+|------|------|
+| `geminiService.ts` | 前端 API 客户端，调用后端 `/api/analyze`, `/api/translate`, `/api/tts` |
+| `storageService.ts` | IndexedDB 封装，支持 localStorage 降级 |
+
+### 📂 后端 - server.js
+
+| 端点 | 功能 |
+|------|------|
+| `GET /api/health` | 健康检查 |
+| `POST /api/analyze` | 图片分析（调用通义千问/Gemini） |
+| `POST /api/translate` | 单词翻译 |
+| `POST /api/tts` | 文字转语音 |
+
+---
+
+## ⚠️ 开发规范 | Development Guidelines
+
+### 🚫 避免的做法
+
+1. **不要在 `App.tsx` 中定义组件** - 所有组件必须放在 `components/` 目录
+2. **不要重复定义 Context** - 使用 `contexts/AppContext.tsx` 的唯一实例
+3. **不要在根目录放服务文件** - API 服务放在 `services/` 目录
+4. **不要硬编码翻译字符串** - 使用 `constants/translations.ts`
+
+### ✅ 推荐的做法
+
+1. **保持 `App.tsx` 精简** - 仅包含导入和路由配置
+2. **组件从 Context 获取状态** - 使用 `useApp()` hook
+3. **新组件添加到 `components/`** - 并导出为命名导出
+4. **API 调用通过 `services/`** - 保持前后端分离
+
+---
+
+## 🔐 环境变量 | Environment Variables
+
+在 `.env` 文件中配置（不要提交到 Git）：
+
+```env
+# AI 服务商 API 密钥
+DASHSCOPE_API_KEY=你的阿里云通义千问密钥
+GEMINI_API_KEY=你的Google Gemini密钥（可选备用）
+
+# 可选配置
+PORT=3001                        # 后端端口
+AI_PROVIDER=auto                 # 'tongyi' | 'gemini' | 'auto'
+GEMINI_MODEL=gemini-1.5-flash    # Gemini 模型选择
+```
+
+---
+
 ## 🚀 未来迭代 | Future Iterations
 
 | 优先级 | 功能 | Description |

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flower, RefreshCw, Search, Sprout, ArrowDown } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';

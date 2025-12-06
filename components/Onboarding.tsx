@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
@@ -6,7 +6,7 @@ import { LANGUAGES } from '../constants/languages';
 import { TRANSLATIONS } from '../constants/translations';
 
 export const Onboarding = () => {
-    const { settings, updateSettings, t } = useApp();
+    const { settings, updateSettings } = useApp();
     const navigate = useNavigate();
 
     // Steps: 0 = Native, 1 = Target

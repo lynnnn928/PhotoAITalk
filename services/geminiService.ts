@@ -38,10 +38,10 @@ export const analyzeImage = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      image: base64Image,
+      base64Image,
       mimeType,
-      nativeLanguage: nativeLang,
-      targetLanguage: targetLang,
+      nativeLang,
+      targetLang,
     }),
   });
 
@@ -79,10 +79,10 @@ export const translateWord = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      word,
+      text: word,
       context: contextSentence,
-      nativeLanguage: nativeLang,
-      targetLanguage: targetLang,
+      nativeLang,
+      targetLang,
     }),
   });
 
@@ -103,22 +103,30 @@ export const lookupWord = async (
   _apiBaseUrl?: string
 ): Promise<{ label: string; nativeLabel: string }> => {
 
-  const response = await fetch(`${getApiBaseUrl()}/api/lookup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      word,
-      context: contextSentence,
-      nativeLanguage: nativeLang,
-      targetLanguage: targetLang,
-    }),
-  });
+  try {
+    const response = await fetch(`${getApiBaseUrl()}/api/translate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: word,
+        context: contextSentence,
+        nativeLang,
+        targetLang,
+      }),
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return { label: word, nativeLabel: '...' };
+    }
+
+    const data = await response.json();
+    return {
+      label: word,
+      nativeLabel: data.translation || '...'
+    };
+  } catch {
     return { label: word, nativeLabel: '...' };
   }
-
-  return await response.json();
 };
 
 // ===== TTS (Text-to-Speech) =====

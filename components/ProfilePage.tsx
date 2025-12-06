@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Globe, ArrowRight, Zap, Settings, ChevronDown, LogOut } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
